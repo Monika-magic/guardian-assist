@@ -45,10 +45,8 @@ function Home() {
     const coords = await getCurrentLocation();
     sasn.setCoords(coords);
     sasn.startAlert(trigger, coords);
-    sasn.pushEvent("success", `SMS sent to ${contacts.length} emergency contacts`);
-    sasn.pushEvent("success", "Push notification sent");
-    sasn.pushEvent("success", "Call alert triggered");
     sasn.pushEvent("info", "Alert processed via automated workflow (n8n)");
+    dispatchAlertToContacts(mapsUrl(coords));
     const ok = await startMic();
     sasn.pushEvent(ok ? "success" : "info", ok ? "Microphone recording live audio" : "Audio recording (simulated)");
     navigate({ to: "/alert" });
