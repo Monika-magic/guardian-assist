@@ -177,7 +177,8 @@ function AlertScreen() {
         </div>
       </div>
 
-      {/* Workflow indicator */}
+      {/* Live video */}
+      <LiveCamera active={isActive} />
       <div className="glass-card flex items-center gap-3 rounded-2xl p-4">
         <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent/15 text-accent">
           <Activity className="h-4.5 w-4.5" />
