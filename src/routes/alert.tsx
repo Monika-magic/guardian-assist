@@ -242,6 +242,8 @@ function DeliveryPanel({ deliveries, mapsLink }: { deliveries: Delivery[]; mapsL
   const pct = total ? Math.round((delivered / total) * 100) : 0;
 
   const smsMessage = `🚨 EMERGENCY — I need help. My live location: ${mapsLink}`;
+  const hasSmsRelay = deliveries.some(d => d.channel === "sms" && d.status === "delivered");
+  const hasCallRelay = deliveries.some(d => d.channel === "call" && d.status === "delivered");
 
   return (
     <div className="glass-card rounded-2xl p-4">
@@ -288,6 +290,8 @@ function DeliveryPanel({ deliveries, mapsLink }: { deliveries: Delivery[]; mapsL
                     onClick={() => {
                       if (openNativeHref(smsHref)) {
                         sasn.pushEvent("success", `Native SMS composer opened for ${head.contactName}`);
+                      } else {
+                        sasn.pushEvent("info", `SMS handoff blocked in preview — delivery remains simulated for ${head.contactName}`);
                       }
                     }}
                     disabled={!smsHref}
@@ -301,6 +305,8 @@ function DeliveryPanel({ deliveries, mapsLink }: { deliveries: Delivery[]; mapsL
                     onClick={() => {
                       if (openNativeHref(telHref)) {
                         sasn.pushEvent("success", `Native call opened for ${head.contactName}`);
+                      } else {
+                        sasn.pushEvent("info", `Call handoff blocked in preview — delivery remains simulated for ${head.contactName}`);
                       }
                     }}
                     disabled={!telHref}
@@ -322,10 +328,16 @@ function DeliveryPanel({ deliveries, mapsLink }: { deliveries: Delivery[]; mapsL
         })}
       </div>
 
-      <p className="mt-3 text-[11px] text-muted-foreground">
-        Tap <MessageSquare className="inline h-3 w-3" /> or <Phone className="inline h-3 w-3" /> to send the alert
-        from your device. Automated relay is simulated above.
-      </p>
+      <div className="mt-3 rounded-xl border border-border bg-background/30 p-3 text-[11px] text-muted-foreground">
+        <p>
+          {hasSmsRelay || hasCallRelay
+            ? "Contact receipt is simulated above for demo purposes; native SMS/call buttons try to open your device app when the browser allows it."
+            : "The preview can simulate contact receipt, but embedded browsers may block opening native SMS/call apps."}
+        </p>
+        <p className="mt-1.5">
+          Tap <MessageSquare className="inline h-3 w-3" /> or <Phone className="inline h-3 w-3" /> to try the native handoff from your device.
+        </p>
+      </div>
     </div>
   );
 }

@@ -22,15 +22,39 @@ export function buildSmsHref(phone: string, message: string) {
 export function openNativeHref(href: string) {
   if (!href || typeof window === "undefined") return false;
 
-  try {
+  const attempt = (run: () => void) => {
+    try {
+      run();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  if (attempt(() => {
     if (window.top && window.top !== window) {
       window.top.location.href = href;
-      return true;
+      return;
     }
-  } catch {
-    // Cross-origin iframe access can fail; fall back to current window.
+    throw new Error("top window unavailable");
+  })) {
+    return true;
   }
 
-  window.location.href = href;
-  return true;
+  if (attempt(() => window.open(href, "_self"))) {
+    return true;
+  }
+
+  if (attempt(() => window.location.assign(href))) {
+    return true;
+  }
+
+  return attempt(() => {
+    const anchor = document.createElement("a");
+    anchor.href = href;
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  });
 }
