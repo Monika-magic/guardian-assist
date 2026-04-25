@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Siren, Sparkles, MapPin, Mic, Wifi } from "lucide-react";
 import { useEffect, useRef } from "react";
-import { sasn, useSASN } from "@/lib/sasn-store";
-import { driftCoords, getCurrentLocation } from "@/lib/geo";
+import { sasn, useSASN, dispatchAlertToContacts } from "@/lib/sasn-store";
+import { driftCoords, getCurrentLocation, mapsUrl } from "@/lib/geo";
 import { speak, startMic } from "@/lib/media";
 
 export const Route = createFileRoute("/")({
