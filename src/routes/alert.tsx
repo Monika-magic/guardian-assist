@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { sasn, useSASN, type TimelineEvent, type Delivery } from "@/lib/sasn-store";
 import { mapsUrl } from "@/lib/geo";
 import { speak, stopMic, stopSpeaking } from "@/lib/media";
+import { buildSmsHref, buildTelHref, openNativeHref } from "@/lib/contact-links";
 import { LiveCamera } from "@/components/LiveCamera";
 
 export const Route = createFileRoute("/alert")({
@@ -240,9 +241,7 @@ function DeliveryPanel({ deliveries, mapsLink }: { deliveries: Delivery[]; mapsL
   const delivered = deliveries.filter(d => d.status === "delivered").length;
   const pct = total ? Math.round((delivered / total) * 100) : 0;
 
-  const smsBody = encodeURIComponent(
-    `🚨 EMERGENCY — I need help. My live location: ${mapsLink}`
-  );
+  const smsMessage = `🚨 EMERGENCY — I need help. My live location: ${mapsLink}`;
 
   return (
     <div className="glass-card rounded-2xl p-4">
@@ -274,7 +273,8 @@ function DeliveryPanel({ deliveries, mapsLink }: { deliveries: Delivery[]; mapsL
       <div className="mt-4 flex flex-col gap-3">
         {Array.from(byContact.entries()).map(([cid, ds]) => {
           const head = ds[0];
-          const phoneClean = head.phone.replace(/\s+/g, "");
+          const smsHref = buildSmsHref(head.phone, smsMessage);
+          const telHref = buildTelHref(head.phone);
           return (
             <div key={cid} className="rounded-xl border border-border bg-background/40 p-3">
               <div className="flex items-center justify-between gap-2">
@@ -283,20 +283,32 @@ function DeliveryPanel({ deliveries, mapsLink }: { deliveries: Delivery[]; mapsL
                   <p className="truncate font-mono text-[10px] text-muted-foreground">{head.phone}</p>
                 </div>
                 <div className="flex shrink-0 gap-1.5">
-                  <a
-                    href={`sms:${phoneClean}?body=${smsBody}`}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (openNativeHref(smsHref)) {
+                        sasn.pushEvent("success", `Native SMS composer opened for ${head.contactName}`);
+                      }
+                    }}
+                    disabled={!smsHref}
                     className="grid h-8 w-8 place-items-center rounded-lg bg-primary/15 text-primary transition-colors hover:bg-primary/25"
                     title="Send SMS now"
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
-                  </a>
-                  <a
-                    href={`tel:${phoneClean}`}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (openNativeHref(telHref)) {
+                        sasn.pushEvent("success", `Native call opened for ${head.contactName}`);
+                      }
+                    }}
+                    disabled={!telHref}
                     className="grid h-8 w-8 place-items-center rounded-lg bg-success/15 text-success transition-colors hover:bg-success/25"
                     title="Call now"
                   >
                     <Phone className="h-3.5 w-3.5" />
-                  </a>
+                  </button>
                 </div>
               </div>
 
