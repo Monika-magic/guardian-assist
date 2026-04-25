@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, MapPin, Mic, ExternalLink, ShieldCheck, Activity, Sparkles, AlertTriangle } from "lucide-react";
+import { CheckCircle2, MapPin, ExternalLink, ShieldCheck, Activity, Sparkles, AlertTriangle, Volume2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { sasn, useSASN, type TimelineEvent } from "@/lib/sasn-store";
 import { mapsUrl } from "@/lib/geo";
+import { speak, stopMic, stopSpeaking } from "@/lib/media";
+import { LiveCamera } from "@/components/LiveCamera";
 
 export const Route = createFileRoute("/alert")({
   head: () => ({
@@ -61,12 +63,25 @@ function AlertScreen() {
             {isActive ? `Broadcasting to ${contacts.length} contacts · ${fmt(elapsed)}` : `Ended at ${new Date(alert.endedAt!).toLocaleTimeString()}`}
           </p>
           {isActive && (
-            <button
-              onClick={() => { sasn.stopAlert(); sasn.pushEvent("success", "Alert resolved by user"); }}
-              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-foreground/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider backdrop-blur transition-colors hover:bg-foreground/20"
-            >
-              <ShieldCheck className="h-4 w-4" /> Mark Safe
-            </button>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                onClick={() => speak("Alert. The user is in danger. Location has been shared.")}
+                className="inline-flex items-center gap-2 rounded-xl bg-foreground/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider backdrop-blur transition-colors hover:bg-foreground/20"
+              >
+                <Volume2 className="h-4 w-4" /> Replay Voice Alert
+              </button>
+              <button
+                onClick={() => {
+                  stopMic();
+                  stopSpeaking();
+                  sasn.stopAlert();
+                  sasn.pushEvent("success", "Alert resolved by user");
+                }}
+                className="inline-flex items-center gap-2 rounded-xl bg-foreground/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider backdrop-blur transition-colors hover:bg-foreground/20"
+              >
+                <ShieldCheck className="h-4 w-4" /> Mark Safe
+              </button>
+            </div>
           )}
         </div>
       </div>
