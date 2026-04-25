@@ -1,8 +1,8 @@
 import { useNavigate, useLocation } from "@tanstack/react-router";
 import { Siren, Lock } from "lucide-react";
 import { useState } from "react";
-import { sasn, useSASN } from "@/lib/sasn-store";
-import { getCurrentLocation } from "@/lib/geo";
+import { sasn, useSASN, dispatchAlertToContacts } from "@/lib/sasn-store";
+import { getCurrentLocation, mapsUrl } from "@/lib/geo";
 import { speak, startMic } from "@/lib/media";
 
 /**
@@ -10,7 +10,7 @@ import { speak, startMic } from "@/lib/media";
  * Always visible, fixed position. One tap fires the full SOS flow without navigation friction.
  */
 export function QuickSOS() {
-  const { activeAlertId, contacts } = useSASN();
+  const { activeAlertId } = useSASN();
   const navigate = useNavigate();
   const loc = useLocation();
   const [busy, setBusy] = useState(false);
@@ -27,10 +27,8 @@ export function QuickSOS() {
     const coords = await getCurrentLocation();
     sasn.setCoords(coords);
     sasn.startAlert("manual", coords);
-    sasn.pushEvent("success", `SMS sent to ${contacts.length} emergency contacts`);
-    sasn.pushEvent("success", "Push notification sent");
-    sasn.pushEvent("success", "Call alert triggered");
     sasn.pushEvent("info", "Alert dispatched via n8n automated workflow");
+    dispatchAlertToContacts(mapsUrl(coords));
     const ok = await startMic();
     sasn.pushEvent(ok ? "success" : "info", ok ? "Microphone recording live audio" : "Audio recording (simulated — mic denied)");
     setBusy(false);
