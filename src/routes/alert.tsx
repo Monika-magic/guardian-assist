@@ -226,3 +226,124 @@ function TimelineRow({ ev }: { ev: TimelineEvent }) {
     </div>
   );
 }
+
+function DeliveryPanel({ deliveries, mapsLink }: { deliveries: Delivery[]; mapsLink: string }) {
+  // Group deliveries by contact
+  const byContact = new Map<string, Delivery[]>();
+  for (const d of deliveries) {
+    const arr = byContact.get(d.contactId) ?? [];
+    arr.push(d);
+    byContact.set(d.contactId, arr);
+  }
+
+  const total = deliveries.length;
+  const delivered = deliveries.filter(d => d.status === "delivered").length;
+  const pct = total ? Math.round((delivered / total) * 100) : 0;
+
+  const smsBody = encodeURIComponent(
+    `🚨 EMERGENCY — I need help. My live location: ${mapsLink}`
+  );
+
+  return (
+    <div className="glass-card rounded-2xl p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Send className="h-4 w-4 text-primary" />
+          <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+            Contact Delivery Feed
+          </span>
+        </div>
+        <span className="font-mono text-[10px] text-success">
+          {delivered}/{total} delivered
+        </span>
+      </div>
+
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-background/60">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-danger to-accent transition-all duration-500"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+
+      {byContact.size === 0 && (
+        <p className="mt-4 text-xs text-muted-foreground">
+          Waiting for broadcast… add contacts to receive alerts.
+        </p>
+      )}
+
+      <div className="mt-4 flex flex-col gap-3">
+        {Array.from(byContact.entries()).map(([cid, ds]) => {
+          const head = ds[0];
+          const phoneClean = head.phone.replace(/\s+/g, "");
+          return (
+            <div key={cid} className="rounded-xl border border-border bg-background/40 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{head.contactName}</p>
+                  <p className="truncate font-mono text-[10px] text-muted-foreground">{head.phone}</p>
+                </div>
+                <div className="flex shrink-0 gap-1.5">
+                  <a
+                    href={`sms:${phoneClean}?body=${smsBody}`}
+                    className="grid h-8 w-8 place-items-center rounded-lg bg-primary/15 text-primary transition-colors hover:bg-primary/25"
+                    title="Send SMS now"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </a>
+                  <a
+                    href={`tel:${phoneClean}`}
+                    className="grid h-8 w-8 place-items-center rounded-lg bg-success/15 text-success transition-colors hover:bg-success/25"
+                    title="Call now"
+                  >
+                    <Phone className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </div>
+
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {ds.map(d => (
+                  <ChannelChip key={d.id} d={d} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="mt-3 text-[11px] text-muted-foreground">
+        Tap <MessageSquare className="inline h-3 w-3" /> or <Phone className="inline h-3 w-3" /> to send the alert
+        from your device. Automated relay is simulated above.
+      </p>
+    </div>
+  );
+}
+
+function ChannelChip({ d }: { d: Delivery }) {
+  const channelIcon = {
+    sms: <MessageSquare className="h-3 w-3" />,
+    push: <Bell className="h-3 w-3" />,
+    call: <Phone className="h-3 w-3" />,
+  }[d.channel];
+
+  const statusIcon =
+    d.status === "delivered" ? <Check className="h-3 w-3" />
+    : d.status === "sent" ? <Send className="h-3 w-3" />
+    : d.status === "failed" ? <AlertTriangle className="h-3 w-3" />
+    : <Clock className="h-3 w-3 animate-pulse-soft" />;
+
+  const tone =
+    d.status === "delivered" ? "border-success/40 bg-success/10 text-success"
+    : d.status === "sent" ? "border-accent/40 bg-accent/10 text-accent"
+    : d.status === "failed" ? "border-danger/40 bg-danger/10 text-danger"
+    : "border-border bg-background/40 text-muted-foreground";
+
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider ${tone}`}>
+      {channelIcon}
+      <span>{d.channel}</span>
+      <span className="opacity-60">·</span>
+      {statusIcon}
+      <span>{d.status}</span>
+    </span>
+  );
+}
