@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, MapPin, ExternalLink, ShieldCheck, Activity, Sparkles, AlertTriangle, Volume2 } from "lucide-react";
+import { CheckCircle2, MapPin, ExternalLink, ShieldCheck, Activity, Sparkles, AlertTriangle, Volume2, MessageSquare, Phone, Bell, Send, Check, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
-import { sasn, useSASN, type TimelineEvent } from "@/lib/sasn-store";
+import { sasn, useSASN, type TimelineEvent, type Delivery } from "@/lib/sasn-store";
 import { mapsUrl } from "@/lib/geo";
 import { speak, stopMic, stopSpeaking } from "@/lib/media";
 import { LiveCamera } from "@/components/LiveCamera";
@@ -179,6 +179,9 @@ function AlertScreen() {
 
       {/* Live video */}
       <LiveCamera active={isActive} />
+
+      {/* Per-contact delivery feed */}
+      <DeliveryPanel deliveries={alert.deliveries} mapsLink={coords ? mapsUrl(coords) : ""} />
       <div className="glass-card flex items-center gap-3 rounded-2xl p-4">
         <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent/15 text-accent">
           <Activity className="h-4.5 w-4.5" />
