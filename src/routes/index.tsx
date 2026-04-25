@@ -3,6 +3,7 @@ import { Siren, Sparkles, MapPin, Mic, Wifi } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { sasn, useSASN } from "@/lib/sasn-store";
 import { driftCoords, getCurrentLocation } from "@/lib/geo";
+import { speak, startMic } from "@/lib/media";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -39,13 +40,17 @@ function Home() {
   async function triggerSOS(trigger: "manual" | "ai") {
     if (activeAlertId) { navigate({ to: "/alert" }); return; }
     sasn.pushEvent(trigger === "ai" ? "ai" : "danger",
-      trigger === "ai" ? "AI detected distress situation" : "Manual SOS triggered");
+      trigger === "ai" ? "AI detected abnormal situation (movement/audio trigger)" : "Manual SOS triggered");
+    speak("Alert. The user is in danger. Location has been shared.");
     const coords = await getCurrentLocation();
     sasn.setCoords(coords);
     sasn.startAlert(trigger, coords);
-    sasn.pushEvent("success", `Alert dispatched to ${contacts.length} contacts`);
+    sasn.pushEvent("success", `SMS sent to ${contacts.length} emergency contacts`);
+    sasn.pushEvent("success", "Push notification sent");
+    sasn.pushEvent("success", "Call alert triggered");
     sasn.pushEvent("info", "Alert processed via automated workflow (n8n)");
-    sasn.pushEvent("info", "Audio recording started");
+    const ok = await startMic();
+    sasn.pushEvent(ok ? "success" : "info", ok ? "Microphone recording live audio" : "Audio recording (simulated)");
     navigate({ to: "/alert" });
   }
 
