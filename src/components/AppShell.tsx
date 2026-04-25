@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import { Shield, Users, BarChart3, Siren } from "lucide-react";
 import { useSASN } from "@/lib/sasn-store";
+import { QuickSOS } from "@/components/QuickSOS";
 
 export function AppShell() {
   const { activeAlertId } = useSASN();
@@ -37,6 +38,8 @@ export function AppShell() {
       <main className="flex-1 px-5 pb-28 pt-6">
         <Outlet />
       </main>
+
+      <QuickSOS />
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-4 pb-4">
